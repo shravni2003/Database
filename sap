@@ -1,0 +1,256 @@
+ChatGPT 3.5
+
+User
+6. Create following tables for book database and insert data into it by using SQL.
+
+Book (bookid, title, price, pages)
+
+Author (aid, au_name, address, city, no_pub) Writtenby (bookid, aid)
+
+Publisher (pid, pb_name, address, phone) Publishedby (bookid, pid, no_of_copies, year) Supplier (sup_id, sup_name, address, city) Supplies (bookid, sup_id, sup_price)
+
+1. Display author names whose books are published in year 2008,
+
+2 . Display names of supplier to which book of operating system is available. 3. Display in ascending order the names of books published by "........"
+
+4. Display the names of publishers who publish books whose supplier price is less than 500
+
+5. Display name of books whose supply city not is sangli. 6. Display all book names order by there supply price.
+
+7. Display name of supplier having book name net working.
+
+8. Display authors name in each city.
+
+9. Create trigger for Before Insert on any table given above.
+
+ChatGPT
+Certainly! Here are SQL queries for the tasks you've mentioned:
+
+1. Display author names whose books are published in the year 2008
+sql
+Copy code
+SELECT au_name
+FROM Author
+WHERE aid IN (SELECT aid FROM Writtenby WHERE bookid IN (SELECT bookid FROM Publishedby WHERE year = 2008));
+2. Display names of suppliers to which the book "Operating System" is available
+sql
+Copy code
+SELECT sup_name
+FROM Supplier
+WHERE sup_id IN (SELECT sup_id FROM Supplies WHERE bookid IN (SELECT bookid FROM Book WHERE title = 'Operating System'));
+3. Display in ascending order the names of books published by "..."
+sql
+Copy code
+SELECT title
+FROM Book
+WHERE bookid IN (SELECT bookid FROM Publishedby WHERE pid IN (SELECT pid FROM Publisher WHERE pb_name = '...'))
+ORDER BY title ASC;
+4. Display the names of publishers who publish books whose supplier price is less than 500
+sql
+Copy code
+SELECT DISTINCT pb_name
+FROM Publisher
+WHERE pid IN (SELECT pid FROM Publishedby WHERE bookid IN (SELECT bookid FROM Supplies WHERE sup_price < 500));
+5. Display names of books whose supply city is not Sangli
+sql
+Copy code
+SELECT title
+FROM Book
+WHERE bookid IN (SELECT bookid FROM Supplies WHERE sup_id IN (SELECT sup_id FROM Supplier WHERE city <> 'Sangli'));
+6. Display all book names ordered by their supply price
+sql
+Copy code
+SELECT title
+FROM Book
+WHERE bookid IN (SELECT bookid FROM Supplies ORDER BY sup_price);
+7. Display the name of the supplier having the book named "Networking"
+sql
+Copy code
+SELECT sup_name
+FROM Supplier
+WHERE sup_id IN (SELECT sup_id FROM Supplies WHERE bookid IN (SELECT bookid FROM Book WHERE title = 'Networking'));
+8. Display authors' names in each city
+sql
+Copy code
+SELECT city, GROUP_CONCAT(au_name) AS authors_in_city
+FROM Author
+GROUP BY city;
+9. Create a trigger for Before Insert on any table given above
+Creating triggers depends on the specific requirements. Here's a generic example:
+
+sql
+Copy code
+CREATE TRIGGER before_insert_trigger
+BEFORE INSERT ON YourTable
+FOR EACH ROW
+BEGIN
+    -- Trigger logic goes here
+END;
+Replace YourTable with the appropriate table name, and you can customize the trigger logic inside the BEGIN and END blocks as needed.
+
+
+
+
+User
+See use join 
+
+ChatGPT
+Certainly! We can use JOIN operations to combine data from multiple tables. Here are the queries using JOIN for the tasks you've mentioned:
+
+1. Display author names whose books are published in the year 2008
+sql
+Copy code
+SELECT au.au_name
+FROM Author au
+JOIN Writtenby wb ON au.aid = wb.aid
+JOIN Publishedby pb ON wb.bookid = pb.bookid
+WHERE pb.year = 2008;
+2. Display names of suppliers to which the book "Operating System" is available
+sql
+Copy code
+SELECT s.sup_name
+FROM Supplier s
+JOIN Supplies su ON s.sup_id = su.sup_id
+JOIN Book b ON su.bookid = b.bookid
+WHERE b.title = 'Operating System';
+3. Display in ascending order the names of books published by "..."
+sql
+Copy code
+SELECT b.title
+FROM Book b
+JOIN Publishedby pb ON b.bookid = pb.bookid
+JOIN Publisher p ON pb.pid = p.pid
+WHERE p.pb_name = '...'
+ORDER BY b.title ASC;
+4. Display the names of publishers who publish books whose supplier price is less than 500
+sql
+Copy code
+SELECT DISTINCT p.pb_name
+FROM Publisher p
+JOIN Publishedby pb ON p.pid = pb.pid
+JOIN Supplies s ON pb.bookid = s.bookid
+WHERE s.sup_price < 500;
+5. Display names of books whose supply city is not Sangli
+sql
+Copy code
+SELECT b.title
+FROM Book b
+JOIN Supplies s ON b.bookid = s.bookid
+JOIN Supplier su ON s.sup_id = su.sup_id
+WHERE su.city <> 'Sangli';
+6. Display all book names ordered by their supply price
+sql
+Copy code
+SELECT b.title
+FROM Book b
+JOIN Supplies s ON b.bookid = s.bookid
+ORDER BY s.sup_price;
+7. Display the name of the supplier having the book named "Networking"
+sql
+Copy code
+SELECT su.sup_name
+FROM Supplier su
+JOIN Supplies s ON su.sup_id = s.sup_id
+JOIN Book b ON s.bookid = b.bookid
+WHERE b.title = 'Networking';
+8. Display authors' names in each city
+sql
+Copy code
+SELECT au.city, GROUP_CONCAT(au.au_name) AS authors_in_city
+FROM Author au
+GROUP BY au.city;
+9. Create a trigger for Before Insert on any table given above
+Creating triggers depends on the specific requirements. Here's a generic example using the Book table:
+
+sql
+Copy code
+CREATE TRIGGER before_insert_book_trigger
+BEFORE INSERT ON Book
+FOR EACH ROW
+BEGIN
+    -- Trigger logic goes here
+END;
+
+
+- Create the database
+CREATE DATABASE IF NOT EXISTS YourDatabaseName;
+
+-- Use the database
+USE YourDatabaseName;
+
+-- Create the Book table
+CREATE TABLE Book (
+    bookid INT PRIMARY KEY,
+    title VARCHAR(255),
+    price DECIMAL(10, 2),
+    pages INT
+);
+
+-- Create the Author table
+CREATE TABLE Author (
+    aid INT PRIMARY KEY,
+    au_name VARCHAR(255),
+    address VARCHAR(255),
+    city VARCHAR(255),
+    no_pub INT
+);
+
+-- Create the Writtenby table with foreign keys
+CREATE TABLE Writtenby (
+    bookid INT,
+    aid INT,
+    PRIMARY KEY (bookid, aid),
+    FOREIGN KEY (bookid) REFERENCES Book(bookid),
+    FOREIGN KEY (aid) REFERENCES Author(aid)
+);
+
+-- Create the Publisher table
+CREATE TABLE Publisher (
+    pid INT PRIMARY KEY,
+    pb_name VARCHAR(255),
+    address VARCHAR(255),
+    phone VARCHAR(20)
+);
+
+-- Create the Publishedby table with foreign keys
+CREATE TABLE Publishedby (
+    bookid INT,
+    pid INT,
+    no_of_copies INT,
+    year INT,
+    PRIMARY KEY (bookid, pid),
+    FOREIGN KEY (bookid) REFERENCES Book(bookid),
+    FOREIGN KEY (pid) REFERENCES Publisher(pid)
+);
+
+-- Create the Supplier table
+CREATE TABLE Supplier (
+    sup_id INT PRIMARY KEY,
+    sup_name VARCHAR(255),
+    address VARCHAR(255),
+    city VARCHAR(255)
+);
+
+-- Create the Supplies table with foreign keys
+CREATE TABLE Supplies (
+    bookid INT,
+    sup_id INT,
+    sup_price DECIMAL(10, 2),
+    PRIMARY KEY (bookid, sup_id),
+    FOREIGN KEY (bookid) REFERENCES Book(bookid),
+    FOREIGN KEY (sup_id) REFERENCES Supplier(sup_id)
+);
+
+-- Example trigger (replace with your specific logic)
+DELIMITER //
+CREATE TRIGGER before_insert_book_trigger
+BEFORE INSERT ON Book
+FOR EACH ROW
+BEGIN
+    -- Trigger logic goes here
+END;
+//
+DELIMITER ;
+
+
+
